@@ -196,7 +196,7 @@ class Board:
     
 
     def game_not_over(self, color):
-        if self.num_black == 0 or self.num_white == 0 or not self.can_move(color) or self.last_capture > 100:
+        if self.num_black == 0 or self.num_white == 0 or not self.can_move(color) or self.last_capture > 80:
             return False
         
         return True
