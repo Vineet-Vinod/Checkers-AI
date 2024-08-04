@@ -1,10 +1,3 @@
-"""
-TO DO
-
-2. Upload to Github!!!
-3. Improve Scoring function
-"""
-
 from checker import Checker
 from board import Board
 from random import randrange
