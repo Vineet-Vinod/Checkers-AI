@@ -6,7 +6,7 @@ class AI():
     # Static Variables
     max_depth = 5
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.num_white = 12
         self.num_black = 12
 
@@ -26,7 +26,7 @@ class AI():
         self.capture_stack = []
 
 
-    def update_move(self, board: Board):
+    def update_move(self, board: Board) -> None:
         self.num_black = 0
         self.num_white = 0
 
@@ -47,7 +47,7 @@ class AI():
                     self.num_white_king += 1
 
 
-    def get_legal(self, x, y, color):
+    def get_legal(self, x: int, y: int, color: int) -> list[tuple]:
         possible_moves = [(x + 1, y - color),
                           (x - 1, y - color)]
         
@@ -63,7 +63,7 @@ class AI():
         return legal
     
 
-    def capturable(self, x, y, color, capture_depth):
+    def capturable(self, x: int, y: int, color: int, capture_depth: int) -> list[tuple]:
         captures = []
         self.promote(x, y)
         legal_moves = self.get_legal(x, y, color)
@@ -86,7 +86,7 @@ class AI():
         return captures
     
 
-    def possible_captures(self, color):
+    def possible_captures(self, color: int) -> list[tuple]:
         captures = []
         
         for i in range(8):
@@ -97,7 +97,7 @@ class AI():
         return captures
 
     
-    def movable(self, x, y, color):
+    def movable(self, x: int, y: int, color: int) -> list[tuple]:
         moves = []
         legal_moves = self.get_legal(x, y, color)
 
@@ -108,7 +108,7 @@ class AI():
         return moves
     
 
-    def possible_moves(self, color):
+    def possible_moves(self, color: int) -> list[tuple]:
         moves = []
         
         for i in range(8):
@@ -119,7 +119,7 @@ class AI():
         return moves
 
     
-    def get_best_move(self, color, depth):
+    def get_best_move(self, color: int, depth: int) -> float | tuple:
         if depth <= self.max_depth:
             best = float("inf") if color == -1 else float("-inf")
             
@@ -138,7 +138,7 @@ class AI():
             return self.evaluate()
 
     
-    def backtrack(self, moves, color, depth):
+    def backtrack(self, moves: list[tuple], color: int, depth: int) -> float | tuple:
         best_move = (-1)
         best_eval = float("inf") if color == -1 else float("-inf")
 
@@ -157,12 +157,12 @@ class AI():
         return best_eval if depth else best_move
     
 
-    def evaluate(self):
+    def evaluate(self) -> float:
         piece_diff = self.num_black - self.num_white + 2 * (self.num_black_king - self.num_white_king)
         return piece_diff + randrange(-10, 11) / 35 # Simulating additional constraints
     
 
-    def make_move(self):
+    def make_move(self) -> None:
         move = self.move_stack[-1]
         
         if move[0]:
@@ -196,7 +196,7 @@ class AI():
             self.promote(move[3], move[4])
     
 
-    def undo_move(self):
+    def undo_move(self) -> None:
         move = self.move_stack[-1]
 
         if move[0]:
@@ -230,11 +230,11 @@ class AI():
             self.board[move[4]][move[3]] = 0
 
     
-    def promote(self, x, y):
+    def promote(self, x, y) -> None:
         if (self.board[y][x] == -1 and y == 7) or (self.board[y][x] == 1 and y == 0):
             self.board[y][x] *= 2
 
 
-    def demote(self, x, y):
+    def demote(self, x, y) -> None:
         if (self.board[y][x] == -2 and y == 7) or (self.board[y][x] == 2 and y == 0):
             self.board[y][x] //= 2

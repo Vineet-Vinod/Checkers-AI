@@ -13,12 +13,12 @@ WIN = pygame.display.set_mode((WIN_WID, WIN_HEIGHT))
 board = Board()
 ai = AI()
 
-def draw(): # Draw the board and pieces
+def draw() -> None: # Draw the board and pieces
     board.draw(WIN)
     pygame.display.update()
 
 
-def main(): # Game loop
+def main() -> None: # Game loop
     clock = pygame.time.Clock()
     run = True
     end = False

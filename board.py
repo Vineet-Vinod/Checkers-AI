@@ -3,7 +3,7 @@ from collections import defaultdict
 from checker import Checker
 
 class Board:
-    def __init__(self):
+    def __init__(self) -> None:
         self.sqr_size = 80
         self.capture_highlight = True
         self.last_capture = 0
@@ -55,7 +55,7 @@ class Board:
                 self.dark_squares.append(((2 * i + 1) * self.sqr_size, 2 * j * self.sqr_size, self.sqr_size, self.sqr_size))
 
 
-    def draw(self, WIN):
+    def draw(self, WIN: pygame.Surface) -> None:
         WIN.fill(self.light)
         
         for square in self.dark_squares:
@@ -80,18 +80,18 @@ class Board:
                 pygame.draw.circle(WIN, self.highlight, ((move[0] * 80 + 40), (move[1] * 80 + 40)), self.radius)
 
 
-    def pos_to_idx(self, x, y):
+    def pos_to_idx(self, x: int, y: int) -> tuple:
         return (x // self.sqr_size, y // self.sqr_size)
     
 
-    def get_color(self, x, y):
+    def get_color(self, x: int, y: int) -> int:
         x_idx, y_idx = self.pos_to_idx(x, y)
         if (x_idx, y_idx) in self.mapping:
             return self.mapping[(x_idx, y_idx)].get_color()
         return -1
     
 
-    def get_legal(self, x, y):
+    def get_legal(self, x: int, y: int) -> None:
         x_idx, y_idx = self.pos_to_idx(x, y)
         self.selection = (x_idx, y_idx)
 
@@ -108,22 +108,22 @@ class Board:
                     self.moves.append(move)
 
 
-    def clear_highlight(self):
+    def clear_highlight(self) -> None:
         self.moves.clear()
         self.selection = ()
         self.capture_highlight = True
 
 
-    def toggle_capture_highlight(self):
+    def toggle_capture_highlight(self) -> None:
         self.capture_highlight = not self.capture_highlight
         self.clear_highlight()
 
 
-    def in_legal(self, x, y):
+    def in_legal(self, x: int, y: int) -> bool:
         return self.pos_to_idx(x, y) in self.moves
     
 
-    def move(self, x, y):
+    def move(self, x: int, y: int) -> None:
         piece = self.mapping[self.selection]
         cur_pos = piece.get_pos()
         self.board[cur_pos[1]][cur_pos[0]] = 0
@@ -138,7 +138,7 @@ class Board:
         self.last_capture += 1
 
     
-    def capturable(self, piece: Checker):
+    def capturable(self, piece: Checker) -> bool:
         ret_val = False
         x_idx, y_idx = piece.get_pos()
         moves = piece.get_legal()
@@ -154,7 +154,7 @@ class Board:
         return ret_val
                     
 
-    def captures(self, color):
+    def captures(self, color: int) -> bool:
         ret_val = False
         for piece in self.mapping.values():
             if piece.get_color() == color:
@@ -165,7 +165,7 @@ class Board:
         return ret_val
     
 
-    def capture_piece(self, x, y):
+    def capture_piece(self, x: int, y: int) -> Checker:
         piece = self.mapping[self.selection]
         cur_pos = piece.get_pos()
         self.board[cur_pos[1]][cur_pos[0]] = 0
@@ -195,14 +195,14 @@ class Board:
         return piece
     
 
-    def game_not_over(self, color):
+    def game_not_over(self, color: int) -> bool:
         if self.num_black == 0 or self.num_white == 0 or not self.can_move(color) or self.last_capture > 80:
             return False
         
         return True
 
 
-    def winner(self):
+    def winner(self) -> str:
         if self.num_black == 0 or not self.can_move(1):
             return "White"
         
@@ -212,7 +212,7 @@ class Board:
         return "No One"
     
 
-    def movable(self, piece: Checker):
+    def movable(self, piece: Checker) -> bool:
         ret_val = False
         moves = piece.get_legal()
 
@@ -224,7 +224,7 @@ class Board:
         return ret_val
                     
 
-    def can_move(self, color):
+    def can_move(self, color: int) -> bool:
         ret_val = False
         for piece in self.mapping.values():
             if piece.get_color() == color and self.movable(piece):
@@ -234,14 +234,14 @@ class Board:
         return ret_val
     
 
-    def get_piece(self, x, y):
+    def get_piece(self, x: int, y: int) -> int:
         if (x,y) in self.mapping:
             return self.mapping[(x,y)].get_id()
         
         return 0
 
 
-    def make_ai_move(self, move):
+    def make_ai_move(self, move: float | tuple) -> None:
         if not isinstance(move, tuple):
             self.white = 0
             return
