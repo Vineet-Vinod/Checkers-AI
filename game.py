@@ -31,7 +31,7 @@ def main() -> None: # Game loop
         end = not run
 
         for event in pygame.event.get():
-            if event.type == pygame.QUIT: # Close game by hitting top right X button
+            if pygame.QUIT == event.type: # Close game by hitting top right X button
                 run = False
                 break
             
@@ -43,7 +43,7 @@ def main() -> None: # Game loop
                     x, y = pygame.mouse.get_pos()
                     color = board.get_color(x, y)
                 
-                    if color == move % 2:
+                    if move % 2 == color:
                         if capturable: # Capturing is forced
                             board.toggle_capture_highlight()
                         else: # No possible captures

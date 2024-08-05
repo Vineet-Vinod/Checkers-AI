@@ -7,13 +7,13 @@ class AI():
     max_depth = 5
 
     def __init__(self) -> None:
-        self.num_white = 12
-        self.num_black = 12
+        self.__num_white = 12
+        self.__num_black = 12
 
-        self.num_white_king = 0
-        self.num_black_king = 0
+        self.__num_white_king = 0
+        self.__num_black_king = 0
 
-        self.board = [[0,-1,0,-1,0,-1,0,-1],
+        self.__board = [[0,-1,0,-1,0,-1,0,-1],
                       [-1,0,-1,0,-1,0,-1,0],
                       [0,-1,0,-1,0,-1,0,-1],
                       [0,0,0,0,0,0,0,0],
@@ -22,39 +22,39 @@ class AI():
                       [0,1,0,1,0,1,0,1],
                       [1,0,1,0,1,0,1,0]]
         
-        self.move_stack = []
-        self.capture_stack = []
-        self.king_stack = []
+        self.__move_stack = []
+        self.__capture_stack = []
+        self.__king_stack = []
 
 
-    def update_move(self, board: Board) -> None:
-        self.num_black = 0
-        self.num_white = 0
-        self.num_black_king = 0
-        self.num_white_king = 0
+    def update_move(self, board: Board) -> None: # Update the AI's copy of the board
+        self.__num_black = 0
+        self.__num_white = 0
+        self.__num_black_king = 0
+        self.__num_white_king = 0
 
         for i in range(8):
             for j in range(8):
-                self.board[i][j] = board.get_piece(j, i)
+                self.__board[i][j] = board.get_piece(j, i)
                 
-                if self.board[i][j] == 1:
-                    self.num_black += 1
+                if 1 == self.__board[i][j]:
+                    self.__num_black += 1
 
-                elif self.board[i][j] == 2:
-                    self.num_black_king += 1
+                elif 2 == self.__board[i][j]:
+                    self.__num_black_king += 1
 
-                elif self.board[i][j] == -1:
-                    self.num_white += 1
+                elif -1 == self.__board[i][j]:
+                    self.__num_white += 1
 
-                elif self.board[i][j] == -2:
-                    self.num_white_king += 1
+                elif -2 == self.__board[i][j]:
+                    self.__num_white_king += 1
 
 
-    def get_legal(self, x: int, y: int, color: int) -> list[tuple]:
+    def get_legal(self, x: int, y: int, color: int) -> list[tuple]: # Return all moves of a Checker that are within the board boundary
         possible_moves = [(x + 1, y - color),
                           (x - 1, y - color)]
         
-        if self.board[y][x] == 2 or self.board[y][x] == -2:
+        if 2 == self.__board[y][x] or -2 == self.__board[y][x]:
             possible_moves.extend([(x + 1, y + color),
                                    (x - 1, y + color)])
 
@@ -66,70 +66,74 @@ class AI():
         return legal
     
 
-    def capturable(self, x: int, y: int, color: int, capture_depth: int) -> list[tuple]:
+    def capturable(self, x: int, y: int, color: int, capture_depth: int) -> list[tuple]: # Return capture chains for the given Checker
         captures = []
-        self.promote(x, y)
+        self.promote(x, y) # Promote if possible
         legal_moves = self.get_legal(x, y, color)
 
         for move in legal_moves:
-            if self.board[move[1]][move[0]] and self.board[move[1]][move[0]] / color < 0:
+            if self.__board[move[1]][move[0]] and self.__board[move[1]][move[0]] / color < 0: # Check if an enemy piece is on the target square
                 move_x, move_y = move
-                if Checker.in_bounds((2 * move_x - x, 2 * move_y - y)) and not self.board[2 * move_y - y][2 * move_x - x]:
-                    capture_chain = self.capturable(2 * move_x - x, 2 * move_y - y, color, capture_depth + 1)
-                    
-                    if capture_chain:
+                if Checker.in_bounds((2 * move_x - x, 2 * move_y - y)) and not self.__board[2 * move_y - y][2 * move_x - x]: # Check if the square after jumping is in bounds and empty
+                    self.__board[2 * move_y - y][2 * move_x - x] = self.__board[y][x] # Place the piece on new square
+                    capture_chain = self.capturable(2 * move_x - x, 2 * move_y - y, color, capture_depth + 1) # Recursively grow capture chain
+                    self.__board[2 * move_y - y][2 * move_x - x] = 0 # Remove piece from new square (post recursion cleanup)
+
+                    if capture_chain: # Add capture chain to list if it exists
                         for cap in capture_chain:
                             chain = [cap[0], x, y] + [i for i in cap[1:]]
                             captures.append(tuple(chain))
 
-                    else:
+                    else: # Add single capture otherwise
                         captures.append((capture_depth, x, y, 2 * move_x - x, 2 * move_y - y))
 
-        self.demote(x, y)
+        self.demote(x, y) # Demote if necessary
         return captures
     
 
-    def possible_captures(self, color: int) -> list[tuple]:
+    def possible_captures(self, color: int) -> list[tuple]: # Loop through side's checkers and check for possible captures
         captures = []
         
         for i in range(8):
             for j in range(8):
-                if self.board[i][j] / color > 0:
+                if self.__board[i][j] / color > 0:
                     captures.extend(self.capturable(j, i, color, 1))
 
         return captures
 
     
-    def movable(self, x: int, y: int, color: int) -> list[tuple]:
+    def movable(self, x: int, y: int, color: int) -> list[tuple]: # Return legal moves for given checker
         moves = []
         legal_moves = self.get_legal(x, y, color)
 
         for move in legal_moves:
-            if not self.board[move[1]][move[0]]:
+            if not self.__board[move[1]][move[0]]:
                 moves.append((0, x, y, move[0], move[1]))
         
         return moves
     
 
-    def possible_moves(self, color: int) -> list[tuple]:
+    def possible_moves(self, color: int) -> list[tuple]: # Loop through side's checkers and check for possible moves
         moves = []
         
         for i in range(8):
             for j in range(8):
-                if self.board[i][j] / color > 0:
+                if self.__board[i][j] / color > 0:
                     moves.extend(self.movable(j, i, color))
 
         return moves
 
     
-    def get_best_move(self, color: int, depth: int) -> float | tuple:
+    def get_best_move(self, color: int, depth: int) -> float | tuple: # Return the best move/evaluation of current position
         if depth <= self.max_depth:
             best = float("inf") if color == -1 else float("-inf")
             
+            # First check for possible captures and act on that
             captures = self.possible_captures(color)
             if captures:
                 best = self.backtrack(captures, color, depth)
             
+            # If no captures, look for legal moves
             else:
                 moves = self.possible_moves(color)
                 if moves:
@@ -141,105 +145,109 @@ class AI():
             return self.evaluate()
 
     
-    def backtrack(self, moves: list[tuple], color: int, depth: int) -> float | tuple:
-        best_move = (-1,)
-        best_eval = float("inf") if color == -1 else float("-inf")
+    def backtrack(self, moves: list[tuple], color: int, depth: int) -> float | tuple: # Implement backtracking algorithm to traverse all decision trees
+        best_move = best_eval = float("inf") if color == -1 else float("-inf")
 
         for move in moves:
-            self.move_stack.append(move)
+            self.__move_stack.append(move)
             self.make_move()
             
+            # Update position evaluation based on minimax algorithm
             move_eval = self.get_best_move(-color, depth + 1)
-            if move_eval and (move_eval < best_eval if color == -1 else move_eval > best_eval):
+            if move_eval and (move_eval <= best_eval if color == -1 else move_eval >= best_eval):
                 best_move = move
                 best_eval = move_eval
 
             self.undo_move()
-            self.move_stack.pop()
+            self.__move_stack.pop()
         
-        return best_eval if depth else best_move
+        return best_eval if depth else best_move # Return best evaluation at every step; at first step, return best move to execute
     
 
-    def evaluate(self) -> float:
-        piece_diff = self.num_black - self.num_white + 2 * (self.num_black_king - self.num_white_king)
+    def evaluate(self) -> float: # Evaluation function
+        piece_diff = self.__num_black - self.__num_white + 2.5 * (self.__num_black_king - self.__num_white_king) # Count difference in pieces; give extra weight to difference in number of kings
         return piece_diff + randrange(-10, 11) / 35 # Simulating additional constraints
     
 
-    def make_move(self) -> None:
-        move = self.move_stack[-1]
+    def make_move(self) -> None: # Execute a move locally to generate new positions during backtracking algorithm
+        move = self.__move_stack[-1]
         
+        # Execute capture chain
         if move[0]:
             start = 1
             num_moves = move[0]
             while num_moves:
                 cap_x, cap_y = (move[start] + move[start + 2]) // 2, (move[start + 1] + move[start + 3]) // 2
                 
-                self.capture_stack.append(self.board[cap_y][cap_x])
+                self.__capture_stack.append(self.__board[cap_y][cap_x]) # Add captured piece stack to restore non destructively
 
-                if self.board[cap_y][cap_x] == 1:
-                    self.num_black -= 1
-                elif self.board[cap_y][cap_x] == -1:
-                    self.num_white -= 1
-                elif self.board[cap_y][cap_x] == 2:
-                    self.num_black_king -= 1
-                elif self.board[cap_y][cap_x] == -2:
-                    self.num_white_king -= 1
+                if 1 == self.__board[cap_y][cap_x]:
+                    self.__num_black -= 1
+                elif -1 == self.__board[cap_y][cap_x]:
+                    self.__num_white -= 1
+                elif 2 == self.__board[cap_y][cap_x]:
+                    self.__num_black_king -= 1
+                elif -2 == self.__board[cap_y][cap_x]:
+                    self.__num_white_king -= 1
                 
-                self.board[cap_y][cap_x] = 0
-                self.board[move[start + 3]][move[start + 2]] = self.board[move[start + 1]][move[start]]
-                self.board[move[start + 1]][move[start]] = 0
-                self.promote(move[start + 2], move[start + 3])
+                self.__board[cap_y][cap_x] = 0
+                self.__board[move[start + 3]][move[start + 2]] = self.__board[move[start + 1]][move[start]]
+                self.__board[move[start + 1]][move[start]] = 0
+                self.promote(move[start + 2], move[start + 3]) # Check and promote as necessary
                 
                 num_moves -= 1
                 start += 2
         
+        # Execute normal move otherwise
         else:
-            self.board[move[4]][move[3]] = self.board[move[2]][move[1]]
-            self.board[move[2]][move[1]] = 0
-            self.promote(move[3], move[4])
+            self.__board[move[4]][move[3]] = self.__board[move[2]][move[1]]
+            self.__board[move[2]][move[1]] = 0
+            self.promote(move[3], move[4]) # Check and promote as necessary
     
 
-    def undo_move(self) -> None:
-        move = self.move_stack[-1]
+    def undo_move(self) -> None: # Undo executed move while unravelling backtracking
+        move = self.__move_stack[-1]
 
+        # Undo capture chain
         if move[0]:
             num_moves = move[0]
             start = 2 * (num_moves - 1) + 1
             
             while num_moves:
-                self.demote(move[start + 2], move[start + 3])
+                self.demote(move[start + 2], move[start + 3]) # Check and demote as necessary
                 cap_x, cap_y = (move[start] + move[start + 2]) // 2, (move[start + 1] + move[start + 3]) // 2
                 
-                self.board[cap_y][cap_x] = self.capture_stack.pop()
+                self.__board[cap_y][cap_x] = self.__capture_stack.pop() # Restore previously captured piece by popping from stack
 
-                if self.board[cap_y][cap_x] == 1:
-                    self.num_black += 1
-                elif self.board[cap_y][cap_x] == -1:
-                    self.num_white += 1
-                elif self.board[cap_y][cap_x] == 2:
-                    self.num_black_king += 1
-                elif self.board[cap_y][cap_x] == -2:
-                    self.num_white_king += 1
+                if 1 == self.__board[cap_y][cap_x]:
+                    self.__num_black += 1
+                elif -1 == self.__board[cap_y][cap_x]:
+                    self.__num_white += 1
+                elif 2 == self.__board[cap_y][cap_x]:
+                    self.__num_black_king += 1
+                elif -2 == self.__board[cap_y][cap_x]:
+                    self.__num_white_king += 1
 
-                self.board[move[start + 1]][move[start]] = self.board[move[start + 3]][move[start + 2]]
-                self.board[move[start + 3]][move[start + 2]] = 0
+                self.__board[move[start + 1]][move[start]] = self.__board[move[start + 3]][move[start + 2]]
+                self.__board[move[start + 3]][move[start + 2]] = 0
                 
                 num_moves -= 1
                 start -= 2
         
+        # Undo normal move otherwise
         else:
-            self.demote(move[3], move[4])
-            self.board[move[2]][move[1]] = self.board[move[4]][move[3]]
-            self.board[move[4]][move[3]] = 0
+            self.demote(move[3], move[4]) # Check and demote as necessary
+            self.__board[move[2]][move[1]] = self.__board[move[4]][move[3]]
+            self.__board[move[4]][move[3]] = 0
 
     
-    def promote(self, x, y) -> None:
-        if (self.board[y][x] == -1 and y == 7) or (self.board[y][x] == 1 and y == 0):
-            self.board[y][x] *= 2
-            self.king_stack.append((x,y))
+    def promote(self, x, y) -> None: # Promote piece to a king as necessary during backtracking
+        if (-1 == self.__board[y][x] and 7 == y) or (1 == self.__board[y][x] and 0 == y):
+            self.__board[y][x] *= 2
+            self.__king_stack.append((x,y)) # Store promotion square to non-destructively demote while unravelling backtracking
 
 
-    def demote(self, x, y) -> None:
-        if self.king_stack and (x,y) == self.king_stack[-1] and ((self.board[y][x] == -2 and y == 7) or (self.board[y][x] == 2 and y == 0)):
-            self.king_stack.pop()
-            self.board[y][x] //= 2
+    def demote(self, x, y) -> None: # Check and demote a king as necessary during backtracking
+        if self.__king_stack and (x,y) == self.__king_stack[-1] and ((-2 == self.__board[y][x] and 7 == y) or (2 == self.__board[y][x] and 0 == y)):
+            self.__king_stack.pop()
+            self.__board[y][x] //= 2

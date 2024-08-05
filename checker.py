@@ -15,13 +15,13 @@ class Checker:
     def __init__(self, x: int, y: int, color: tuple) -> None:
         self.x = x
         self.y = y
-        self.color = color
-        self.negative_color = tuple([(not i) * 255 for i in self.color])
+        self.__color = color
+        self.__negative_color = tuple([(not i) * 255 for i in self.__color])
 
 
     def draw(self, WIN: pygame.Surface) -> None: # Draw Checker
-        pygame.draw.circle(WIN, self.color, ((self.x * self.sqr_size + self.offset), (self.y * self.sqr_size + self.offset)), self.radius)
-        pygame.draw.circle(WIN, self.negative_color, ((self.x * self.sqr_size + self.offset), (self.y * self.sqr_size + self.offset)), self.radius + 1, 2)
+        pygame.draw.circle(WIN, self.__color, ((self.x * self.sqr_size + self.offset), (self.y * self.sqr_size + self.offset)), self.radius)
+        pygame.draw.circle(WIN, self.__negative_color, ((self.x * self.sqr_size + self.offset), (self.y * self.sqr_size + self.offset)), self.radius + 1, 2)
 
 
     def get_pos(self) -> tuple: # Return Checker Position
@@ -29,7 +29,7 @@ class Checker:
     
 
     def get_color(self) -> int: # Return Checker Color
-        if self.color == self.white:
+        if self.white == self.__color:
             return 0
         return 1
     
@@ -53,8 +53,8 @@ class Checker:
 
 
     def convert(self) -> 'Checker': # Promote the checker to a king
-        if self.id == 1 and ((self.y == 7 and self.color == self.white) or (self.y == 0 and self.color == self.black)):
-            king = King(self.x, self.y, self.color)
+        if 1 == self.id and ((7 == self.y and self.white == self.__color) or (0 == self.y and self.black == self.__color)):
+            king = King(self.x, self.y, self.__color)
             return king
         
         return self
