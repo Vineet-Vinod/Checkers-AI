@@ -46,6 +46,8 @@ Follow these steps to set up and run the project:
      ```  
      *(Use `python3` if on Mac/Linux)*
 
+   - To switch play order, simply change the move variable in the game.py file to 0.
+
 4. **Troubleshooting:**
    - If you encounter any issues, try deleting the `__pycache__` folder and rerun `game.py`.
 

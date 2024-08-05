@@ -22,7 +22,7 @@ def main() -> None: # Game loop
     clock = pygame.time.Clock()
     run = True
     end = False
-    move = 1
+    move = 1 # Change to 0 to play second
     capturable = False
 
     while run:
