@@ -24,11 +24,14 @@ class AI():
         
         self.move_stack = []
         self.capture_stack = []
+        self.king_stack = []
 
 
     def update_move(self, board: Board) -> None:
         self.num_black = 0
         self.num_white = 0
+        self.num_black_king = 0
+        self.num_white_king = 0
 
         for i in range(8):
             for j in range(8):
@@ -139,7 +142,7 @@ class AI():
 
     
     def backtrack(self, moves: list[tuple], color: int, depth: int) -> float | tuple:
-        best_move = (-1)
+        best_move = (-1,)
         best_eval = float("inf") if color == -1 else float("-inf")
 
         for move in moves:
@@ -233,8 +236,10 @@ class AI():
     def promote(self, x, y) -> None:
         if (self.board[y][x] == -1 and y == 7) or (self.board[y][x] == 1 and y == 0):
             self.board[y][x] *= 2
+            self.king_stack.append((x,y))
 
 
     def demote(self, x, y) -> None:
-        if (self.board[y][x] == -2 and y == 7) or (self.board[y][x] == 2 and y == 0):
+        if self.king_stack and (x,y) == self.king_stack[-1] and ((self.board[y][x] == -2 and y == 7) or (self.board[y][x] == 2 and y == 0)):
+            self.king_stack.pop()
             self.board[y][x] //= 2

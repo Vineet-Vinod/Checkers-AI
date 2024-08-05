@@ -3,18 +3,29 @@ from collections import defaultdict
 from checker import Checker
 
 class Board:
+    # Static Variables
+    sqr_size = 80
+    dark = (118,150,86)
+    light = (238,238,210)
+    black = (0,0,0)
+    white = (255,255,255)
+    highlight = (192,192,192)
+    board_size = 8
+    dark_squares = []
+    
+    colors = [(255,0,0),
+                (0,255,0),
+                (0,0,255),
+                (0,255,255),
+                (255,255,0),
+                (255,0,255)
+                ]
+    
     def __init__(self) -> None:
-        self.sqr_size = 80
         self.capture_highlight = True
         self.last_capture = 0
         self.num_white = 12
         self.num_black = 12
-
-        self.dark = (118,150,86)
-        self.light = (238,238,210)
-        self.black = (0,0,0)
-        self.white = (255,255,255)
-        self.highlight = (192,192,192)
         
         self.moves = []
         self.capture_moves = defaultdict(list)
@@ -22,7 +33,6 @@ class Board:
         self.radius = 25
         self.selection = ()
 
-        self.board_size = 8
         self.board = [[0,-1,0,-1,0,-1,0,-1],
                       [-1,0,-1,0,-1,0,-1,0],
                       [0,-1,0,-1,0,-1,0,-1],
@@ -32,14 +42,6 @@ class Board:
                       [0,1,0,1,0,1,0,1],
                       [1,0,1,0,1,0,1,0]]
         
-        self.colors = [(255,0,0),
-                       (0,255,0),
-                       (0,0,255),
-                       (0,255,255),
-                       (255,255,0),
-                       (255,0,255)
-                       ]
-        
         self.mapping = defaultdict(Checker)
         for i in range(8):
             for j in range(8):
@@ -48,7 +50,6 @@ class Board:
                 elif self.board[j][i] == 1:
                     self.mapping[(i,j)] = Checker(i, j, self.black)
 
-        self.dark_squares = []
         for i in range(4):
             for j in range(4):
                 self.dark_squares.append((2 * i * self.sqr_size, (2 * j + 1) * self.sqr_size, self.sqr_size, self.sqr_size))
@@ -242,8 +243,8 @@ class Board:
 
 
     def make_ai_move(self, move: float | tuple) -> None:
-        if not isinstance(move, tuple):
-            self.white = 0
+        if not isinstance(move, tuple) or move == (-1,):
+            self.num_white = 0
             return
         
         if move[0]:
