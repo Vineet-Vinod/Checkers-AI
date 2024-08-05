@@ -142,7 +142,7 @@ class AI():
             return best
 
         else:
-            return self.evaluate()
+            return self.evaluate(color)
 
     
     def backtrack(self, moves: list[tuple], color: int, depth: int) -> float | tuple: # Implement backtracking algorithm to traverse all decision trees
@@ -164,9 +164,35 @@ class AI():
         return best_eval if depth else best_move # Return best evaluation at every step; at first step, return best move to execute
     
 
-    def evaluate(self) -> float: # Evaluation function
-        piece_diff = self.__num_black - self.__num_white + 2.5 * (self.__num_black_king - self.__num_white_king) # Count difference in pieces; give extra weight to difference in number of kings
-        return piece_diff + randrange(-10, 11) / 35 # Simulating additional constraints
+    def evaluate(self, color: int) -> float: # Evaluation function
+        # Count difference in pieces; give extra weight to difference in number of kings
+        piece_diff = self.__num_black - self.__num_white + 3 * (self.__num_black_king - self.__num_white_king)
+        
+        # Count number of moves (Having more moves/options - good)
+        pos_moves_eval = 0
+
+        pos_moves = self.possible_captures(color)
+        if pos_moves:
+            pos_moves_eval = len(pos_moves) * 0.55 * color # Give high evaluations to positions with multiple captures
+
+        else:
+            pos_moves = self.possible_moves(color)
+            if not pos_moves: # If no moves or captures are possible, the game is lost
+                pos_moves_eval = float("inf") if color == -1 else float("-inf")
+            
+            else:
+                pos_moves_eval = len(pos_moves) * 0.08 * color # Give low evaluations to positions with moves since on average there are more possible moves than captures
+        
+        # Calculate central control
+        central_control_eval = sum([sum(row[2:6]) for row in self.__board[3:5]]) * 0.2 # Give a medium evaluation for central control
+        
+        # Calculate opponent's proximity to promotion
+        consider_rows = self.__board[1:3] if -1 == color else self.__board[5:7]
+        promotion_proximity_eval = sum([-color for row in consider_rows for elem in row if elem == -color]) * 0.45 # Give a high medium weightage to prevent opponent from promoting
+
+        # Evaluation calculation
+        evaluation = piece_diff + pos_moves_eval + central_control_eval + promotion_proximity_eval
+        return evaluation + randrange(-50, 51) / 715 # Adding some random noise to ensure minor differentiation between 2 "equally good" moves
     
 
     def make_move(self) -> None: # Execute a move locally to generate new positions during backtracking algorithm
